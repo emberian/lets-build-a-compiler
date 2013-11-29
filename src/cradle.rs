@@ -1,19 +1,19 @@
 use std::io::stdin;
 use std::ascii::Ascii;
 
-pub struct Cradle {
+pub struct Translator {
     priv reader: ~Reader,
     priv lookahead: Ascii,
 }
 
-impl Cradle {
-    pub fn init() -> Cradle {
-        let mut c = Cradle {
+impl Translator {
+    pub fn init() -> Translator {
+        let mut t = Translator {
             lookahead: '\0'.to_ascii(),
             reader: ~stdin() as ~Reader
         };
-        c.read();
-        c
+        t.read();
+        t
     }
 
     /// Read the next character of input
@@ -22,8 +22,8 @@ impl Cradle {
     }
 
     /// Check if the current character is `c`, fail otherwise
-    pub fn match_(&mut self, c: Ascii) {
-        if self.lookahead == c {
+    pub fn match_(&mut self, c: char) {
+        if self.lookahead == c.to_ascii() {
             self.read();
         } else {
             expected(c.to_str());
@@ -50,8 +50,34 @@ impl Cradle {
         l
     }
 
-    pub fn expression(&mut self) {
+    pub fn term(&mut self) {
         emitln(format!("mov eax, {}", self.get_num().to_str()));
+    }
+
+    /// Recognize and translate an Add
+    pub fn add(&mut self) {
+        self.match_('+');
+        self.term();
+        emitln("add eax, ebx");
+    }
+
+    /// Recognize and translate a Subtract
+    pub fn subtract(&mut self) {
+        self.match_('-');
+        self.term();
+        emitln("sub eax, ebx");
+        emitln("neg eax");
+    }
+
+    /// Parse and translate an expression
+    pub fn expression(&mut self) {
+        self.term();
+        emitln("mov ebx, eax");
+        match self.lookahead.to_char() {
+            '+' => self.add(),
+            '-' => self.subtract(),
+            _ => expected("Addop")
+        }
     }
 }
 

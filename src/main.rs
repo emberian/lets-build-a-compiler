@@ -1,8 +1,8 @@
-use cradle::Cradle;
+use cradle::Translator;
 
 mod cradle;
 
 fn main() {
-    let mut c = Cradle::init();
-    c.expression();
+    let mut t = Translator::init();
+    t.expression();
 }
