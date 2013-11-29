@@ -49,6 +49,10 @@ impl Cradle {
         self.read();
         l
     }
+
+    pub fn expression(&mut self) {
+        emitln(format!("mov eax, {}", self.get_num().to_str()));
+    }
 }
 
 /// Report error

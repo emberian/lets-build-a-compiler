@@ -3,5 +3,6 @@ use cradle::Cradle;
 mod cradle;
 
 fn main() {
-    let c = Cradle::init();
+    let mut c = Cradle::init();
+    c.expression();
 }
