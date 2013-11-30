@@ -50,8 +50,25 @@ impl Translator {
         l
     }
 
-    pub fn term(&mut self) {
-        emitln(format!("mov eax, {}", self.get_num().to_str()));
+    /// Parse and translate a math factor
+    pub fn factor(&mut self) {
+        emitln(format!("mov rax, {}", self.get_num().to_str()));
+    }
+
+    /// Recognize and translate a Multiply
+    pub fn multiply(&mut self) {
+        self.match_('*');
+        self.factor();
+        emitln("mul rax, [rsp]");
+        emitln("pop");
+    }
+
+    /// Recognize and translate a Divide
+    pub fn divide(&mut self) {
+        self.match_('/');
+        self.factor();
+        emitln("pop rbx");
+        emitln("div rax, rbx");
     }
 
     /// Recognize and translate an Add
@@ -69,6 +86,21 @@ impl Translator {
         emitln("sub rax, [rsp]");
         emitln("pop");
         emitln("neg rax");
+    }
+
+    /// Parse and translate a math term
+    pub fn term(&mut self) {
+        self.factor();
+        let ops = ['*', '/'];
+        while ops.contains(&self.lookahead.to_char()) {
+            emitln("push rax");
+            match self.lookahead.to_char() {
+                '*' => self.multiply(),
+                '/' => self.divide(),
+                _ => expected("Mulop")
+            }
+        }
+
     }
 
     /// Parse and translate an expression
