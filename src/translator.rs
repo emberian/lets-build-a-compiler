@@ -3,13 +3,13 @@ use std::ascii::Ascii;
 
 pub struct Translator {
     priv reader: ~Reader,
-    priv lookahead: Ascii,
+    priv look: Ascii,
 }
 
 impl Translator {
     pub fn init() -> Translator {
         let mut t = Translator {
-            lookahead: '\0'.to_ascii(),
+            look: '\0'.to_ascii(),
             reader: ~stdin() as ~Reader
         };
         t.read();
@@ -18,12 +18,12 @@ impl Translator {
 
     /// Read the next character of input
     pub fn read(&mut self) {
-        self.lookahead = self.reader.read_byte().expect("expected another character").to_ascii();
+        self.look = self.reader.read_byte().expect("expected another character").to_ascii();
     }
 
     /// Check if the current character is `c`, fail otherwise
     pub fn match_(&mut self, c: char) {
-        if self.lookahead == c.to_ascii() {
+        if self.look == c.to_ascii() {
             self.read();
         } else {
             expected(c.to_str());
@@ -32,7 +32,7 @@ impl Translator {
 
     /// Get an identifier
     pub fn get_name(&mut self) -> Ascii {
-        let l = self.lookahead;
+        let l = self.look;
         if !l.is_alpha() {
             expected("Name");
         }
@@ -42,7 +42,7 @@ impl Translator {
 
     /// Get a number
     pub fn get_num(&mut self) -> Ascii {
-        let l = self.lookahead;
+        let l = self.look;
         if !l.is_digit() {
             expected("Integer");
         }
@@ -52,7 +52,7 @@ impl Translator {
 
     /// Parse and translate a math factor
     pub fn factor(&mut self) {
-        if self.lookahead.to_char() == '(' {
+        if self.look.to_char() == '(' {
             self.match_('(');
             self.expression();
             self.match_(')');
@@ -98,9 +98,9 @@ impl Translator {
     pub fn term(&mut self) {
         self.factor();
         let ops = ['*', '/'];
-        while ops.contains(&self.lookahead.to_char()) {
+        while ops.contains(&self.look.to_char()) {
             emitln("push rax");
-            match self.lookahead.to_char() {
+            match self.look.to_char() {
                 '*' => self.multiply(),
                 '/' => self.divide(),
                 _ => expected("Mulop")
@@ -113,9 +113,9 @@ impl Translator {
     pub fn expression(&mut self) {
         self.term();
         let ops = ['+', '-'];
-        while ops.contains(&self.lookahead.to_char()) {
+        while ops.contains(&self.look.to_char()) {
             emitln("push rax");
-            match self.lookahead.to_char() {
+            match self.look.to_char() {
                 '+' => self.add(),
                 '-' => self.subtract(),
                 _ => expected("Addop")
