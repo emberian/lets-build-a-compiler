@@ -111,9 +111,13 @@ impl Translator {
 
     /// Parse and translate an expression
     pub fn expression(&mut self) {
-        self.term();
-        let ops = ['+', '-'];
-        while ops.contains(&self.look.to_char()) {
+        if is_addop(self.look.to_char()) {
+            emitln("xor rax, rax");
+        } else {
+            self.term();
+        }
+
+        while is_addop(self.look.to_char()) {
             emitln("push rax");
             match self.look.to_char() {
                 '+' => self.add(),
@@ -122,6 +126,10 @@ impl Translator {
             }
         }
     }
+}
+
+pub fn is_addop(c: char) -> bool {
+    c == '+' || c == '-'
 }
 
 /// Report error
