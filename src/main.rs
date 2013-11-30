@@ -1,6 +1,6 @@
-use cradle::Translator;
+use translator::Translator;
 
-mod cradle;
+mod translator;
 
 fn main() {
     let mut t = Translator::init();
