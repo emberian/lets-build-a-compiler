@@ -58,15 +58,17 @@ impl Translator {
     pub fn add(&mut self) {
         self.match_('+');
         self.term();
-        emitln("add eax, ebx");
+        emitln("add rax, [rsp]");
+        emitln("pop");
     }
 
     /// Recognize and translate a Subtract
     pub fn subtract(&mut self) {
         self.match_('-');
         self.term();
-        emitln("sub eax, ebx");
-        emitln("neg eax");
+        emitln("sub rax, [rsp]");
+        emitln("pop");
+        emitln("neg rax");
     }
 
     /// Parse and translate an expression
@@ -74,7 +76,7 @@ impl Translator {
         self.term();
         let ops = ['+', '-'];
         while ops.contains(&self.lookahead.to_char()) {
-            emitln("mov ebx, eax");
+            emitln("push rax");
             match self.lookahead.to_char() {
                 '+' => self.add(),
                 '-' => self.subtract(),
