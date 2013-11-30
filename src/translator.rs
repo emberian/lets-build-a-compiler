@@ -52,7 +52,13 @@ impl Translator {
 
     /// Parse and translate a math factor
     pub fn factor(&mut self) {
-        emitln(format!("mov rax, {}", self.get_num().to_str()));
+        if self.lookahead.to_char() == '(' {
+            self.match_('(');
+            self.expression();
+            self.match_(')');
+        } else {
+            emitln(format!("mov rax, {}", self.get_num().to_str()));
+        }
     }
 
     /// Recognize and translate a Multiply
