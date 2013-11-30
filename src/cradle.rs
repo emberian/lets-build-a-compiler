@@ -72,11 +72,14 @@ impl Translator {
     /// Parse and translate an expression
     pub fn expression(&mut self) {
         self.term();
-        emitln("mov ebx, eax");
-        match self.lookahead.to_char() {
-            '+' => self.add(),
-            '-' => self.subtract(),
-            _ => expected("Addop")
+        let ops = ['+', '-'];
+        while ops.contains(&self.lookahead.to_char()) {
+            emitln("mov ebx, eax");
+            match self.lookahead.to_char() {
+                '+' => self.add(),
+                '-' => self.subtract(),
+                _ => expected("Addop")
+            }
         }
     }
 }
