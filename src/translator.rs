@@ -16,6 +16,11 @@ impl Translator {
         t
     }
 
+    /// Get the current lookahead character
+    pub fn look(&self) -> char {
+        self.look.to_char()
+    }
+
     /// Read the next character of input
     pub fn read(&mut self) {
         self.look = self.reader.read_byte()
@@ -125,6 +130,8 @@ impl Translator {
     }
 
     /// Parse and translate an expression
+    ///
+    /// Result of expression is stored in `rax`
     pub fn expression(&mut self) {
         if is_addop(self.look.to_char()) {
             emitln("xor rax, rax");
@@ -140,6 +147,17 @@ impl Translator {
                 _ => expected("Addop")
             }
         }
+    }
+
+    /// Parse and translate an Assignment Statement
+    pub fn assignment(&mut self) {
+        let name = self.get_name();
+        self.match_('=');
+        self.expression();
+        emitln("push rbx");
+        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?"));
+        emitln("mov [rbx], rax");
+        emitln("pop rbx");
     }
 }
 
