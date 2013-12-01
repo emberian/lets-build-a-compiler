@@ -18,7 +18,8 @@ impl Translator {
 
     /// Read the next character of input
     pub fn read(&mut self) {
-        self.look = self.reader.read_byte().expect("expected another character").to_ascii();
+        self.look = self.reader.read_byte()
+                        .expect("expected another character").to_ascii();
     }
 
     /// Check if the current character is `c`, fail otherwise
@@ -50,12 +51,26 @@ impl Translator {
         l
     }
 
+    pub fn ident(&mut self) {
+        let name = self.get_name();
+        if self.look == '('.to_ascii() {
+            self.match_('(');
+            self.match_(')');
+            emitln(format!("call {}", name.to_str()));
+        } else {
+            emitln(format!("mov rax, {}(rip) ; XXX is this correct?",
+                            name.to_str()));
+        }
+    }
+
     /// Parse and translate a math factor
     pub fn factor(&mut self) {
-        if self.look.to_char() == '(' {
+        if self.look == '('.to_ascii() {
             self.match_('(');
             self.expression();
             self.match_(')');
+        } else if self.look.is_alpha() {
+            self.ident();
         } else {
             emitln(format!("mov rax, {}", self.get_num().to_str()));
         }
