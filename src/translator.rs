@@ -12,7 +12,7 @@ impl Translator {
             look: '\0'.to_ascii(),
             reader: ~stdin() as ~Reader
         };
-        t.read();
+        t.read(); // this is important! reads the first char of input
         t
     }
 
@@ -151,11 +151,11 @@ impl Translator {
 
     /// Parse and translate an Assignment Statement
     pub fn assignment(&mut self) {
-        let name = self.get_name();
+        let name = self.get_name().to_str();
         self.match_('=');
         self.expression();
         emitln("push rbx");
-        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?"));
+        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?", name));
         emitln("mov [rbx], rax");
         emitln("pop rbx");
     }

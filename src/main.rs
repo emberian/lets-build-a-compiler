@@ -1,6 +1,7 @@
-use translator::Translator;
+use translator_multichar::Translator;
 
 mod translator;
+mod translator_multichar;
 
 fn main() {
     let mut t = Translator::init();

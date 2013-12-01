@@ -13,6 +13,7 @@ impl Translator {
             reader: ~stdin() as ~Reader
         };
         t.read();
+        t.skip_white();
         t
     }
 
@@ -27,10 +28,18 @@ impl Translator {
                         .expect("expected another character").to_ascii();
     }
 
+    /// Skip any whitespace
+    pub fn skip_white(&mut self) {
+        while self.look.is_blank() {
+            self.read();
+        }
+    }
+
     /// Check if the current character is `c`, fail otherwise
     pub fn match_(&mut self, c: char) {
         if self.look == c.to_ascii() {
             self.read();
+            self.skip_white();
         } else {
             expected(c.to_str());
         }
@@ -47,6 +56,7 @@ impl Translator {
             token.push_char(self.look.to_upper().to_char());
             self.read();
         }
+        self.skip_white();
 
         token
     }
@@ -58,6 +68,7 @@ impl Translator {
             expected("Integer");
         }
         self.read();
+        self.skip_white();
         l
     }
 
@@ -160,7 +171,7 @@ impl Translator {
         self.match_('=');
         self.expression();
         emitln("push rbx");
-        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?"));
+        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?", name));
         emitln("mov [rbx], rax");
         emitln("pop rbx");
     }
