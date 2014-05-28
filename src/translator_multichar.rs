@@ -2,15 +2,15 @@ use std::io::stdin;
 use std::ascii::Ascii;
 
 pub struct Translator {
-    priv reader: ~Reader,
-    priv look: Ascii,
+    reader: Box<Reader>,
+    look: Ascii,
 }
 
 impl Translator {
     pub fn init() -> Translator {
         let mut t = Translator {
             look: '\0'.to_ascii(),
-            reader: ~stdin() as ~Reader
+            reader: box stdin()
         };
         t.read();
         t.skip_white();
@@ -24,7 +24,7 @@ impl Translator {
 
     /// Read the next character of input
     pub fn read(&mut self) {
-        self.look = self.reader.read_byte()
+        self.look = self.reader.read_byte().ok()
                         .expect("expected another character").to_ascii();
     }
 
@@ -41,13 +41,13 @@ impl Translator {
             self.read();
             self.skip_white();
         } else {
-            expected(c.to_str());
+            expected(c.to_str().as_slice());
         }
     }
 
     /// Get an identifier
-    pub fn get_name(&mut self) -> ~str {
-        let mut token = ~"";
+    pub fn get_name(&mut self) -> String {
+        let mut token = String::new();
         if !self.look.is_alpha() {
             expected("Name");
         }
@@ -77,10 +77,10 @@ impl Translator {
         if self.look == '('.to_ascii() {
             self.match_('(');
             self.match_(')');
-            emitln(format!("call {}", name.to_str()));
+            emitln(format!("call {}", name).as_slice());
         } else {
             emitln(format!("mov rax, {}(rip) ; XXX is this correct?",
-                            name.to_str()));
+                            name).as_slice());
         }
     }
 
@@ -93,7 +93,7 @@ impl Translator {
         } else if self.look.is_alpha() {
             self.ident();
         } else {
-            emitln(format!("mov rax, {}", self.get_num().to_str()));
+            emitln(format!("mov rax, {}", self.get_num()).as_slice());
         }
     }
 
@@ -171,7 +171,7 @@ impl Translator {
         self.match_('=');
         self.expression();
         emitln("push rbx");
-        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?", name));
+        emitln(format!("lea rbx, {}(rip) ; XXX is this correct?", name).as_slice());
         emitln("mov [rbx], rax");
         emitln("pop rbx");
     }

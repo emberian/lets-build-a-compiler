@@ -6,8 +6,13 @@ mod translator_interp;
 
 fn main() {
     let mut t = Translator::init();
-    println!("{}", t.expression());
-    if t.look() != '\n' {
-        translator::expected("Newline");
+
+    while t.look() != '.' {
+        match t.look() {
+            '?' => t.input(),
+            '!' => t.output(),
+            _   => t.assignment()
+        }
+        t.newline();
     }
 }

@@ -2,15 +2,17 @@ use std::io::stdin;
 use std::ascii::Ascii;
 
 pub struct Translator {
-    priv reader: ~Reader,
-    priv look: Ascii,
+    reader: Box<Reader>,
+    look: Ascii,
+    table: [int, ..26],
 }
 
 impl Translator {
     pub fn init() -> Translator {
         let mut t = Translator {
             look: '\0'.to_ascii(),
-            reader: ~stdin() as ~Reader
+            reader: box stdin(),
+            table: [0, ..26],
         };
         t.read(); // this is important! reads the first char of input
         t
@@ -23,7 +25,7 @@ impl Translator {
 
     /// Read the next character of input
     pub fn read(&mut self) {
-        self.look = self.reader.read_byte()
+        self.look = self.reader.read_byte().ok()
                         .expect("expected another character").to_ascii();
     }
 
@@ -32,7 +34,7 @@ impl Translator {
         if self.look == c.to_ascii() {
             self.read();
         } else {
-            expected(c.to_str());
+            expected(c.to_str().as_slice());
         }
     }
 
@@ -54,7 +56,7 @@ impl Translator {
         }
 
         while self.look.is_digit() {
-            value = (10 * value) + from_str(self.look.to_str()).unwrap();
+            value = (10 * value) + from_str(self.look.to_str().as_slice()).unwrap();
             self.read();
         }
 
@@ -108,11 +110,65 @@ impl Translator {
             self.match_('(');
             val = self.expression();
             self.match_(')');
+        } else if self.look.is_alpha() {
+            let name = self.get_name();
+            val = self.var(name);
         } else {
             val = self.get_num();
         }
 
         val
+    }
+
+    /// Parse and translate an assignment statement
+    pub fn assignment(&mut self) {
+        let name = self.get_name();
+        self.match_('=');
+        let val = self.expression();
+        self.set_var(name, val);
+    }
+
+    /// Get the value of a variable
+    pub fn var(&self, name: Ascii) -> int {
+        self.table[(name.to_byte() - 'A' as u8) as uint]
+    }
+
+    /// Set the value of a variable
+    pub fn set_var(&mut self, name: Ascii, val: int) {
+        self.table[(name.to_byte() - 'A' as u8) as uint] = val
+    }
+
+    /// Recognize and skip over a newline
+    pub fn newline(&mut self) {
+        if self.look.to_char() == '\r' {
+            self.read();
+            if self.look.to_char() == '\n' {
+                self.read();
+            }
+        } else if self.look.to_char() == '\n' {
+            self.read();
+        }
+    }
+
+    /// Input routine
+    pub fn input(&mut self) {
+        self.match_('?');
+
+        let var = self.get_name();
+
+        self.read();
+
+        let val = self.look.to_byte();
+
+        self.set_var(var, val as int);
+        self.read();
+    }
+
+    /// Ouytput Routine
+    pub fn output(&mut self) {
+        self.match_('!');
+        let var = self.get_name();
+        println!("{}", self.var(var));
     }
 }
 
