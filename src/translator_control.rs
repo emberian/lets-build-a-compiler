@@ -57,12 +57,7 @@ impl Translator {
 
     /// Post a label to output
     fn post_label(&self, label: &str) {
-        println!("{}:", label);
-    }
-
-    /// Parse an "other"?
-    pub fn other(&mut self) {
-        emitln(self.get_name().to_str().as_slice());
+        emit(format!("{}:", label).as_slice());
     }
 
     /// <program> ::= <block> END
@@ -75,10 +70,53 @@ impl Translator {
     }
 
     /// <block> ::= [ <statement> ]*
-    pub fn block(&mut self) {
-        while self.look.to_char() != 'e' {
-            self.other();
+    /// <statement> ::= <if> | <other>
+    fn block(&mut self) {
+        loop {
+            match self.look.to_char() {
+                'i' => self.if_(),
+                'e' | 'l' => return,
+                _   => self.other()
+            }
         }
+    }
+
+    /// <if> ::= i <condition> <block> l <block> e
+    fn if_(&mut self) {
+        self.match_('i');
+
+        let label1 = self.new_label();
+        let mut label2 = label1.clone();
+
+        self.condition();
+
+        emitln(format!("JZ {}", label1).as_slice());
+
+        self.block();
+
+        if self.look.to_char() == 'l' {
+            self.match_('l');
+
+            label2 = self.new_label();
+            emitln(format!("JMP {}", label2).as_slice());
+
+            self.post_label(label1.as_slice());
+
+            self.block()
+        }
+
+        self.match_('e');
+
+        self.post_label(label2.as_slice());
+    }
+
+    /// <other> ::= <name>
+    fn other(&mut self) {
+        emitln(self.get_name().to_str().as_slice());
+    }
+
+    fn condition(&mut self) {
+        emitln("<condition>");
     }
 }
 
