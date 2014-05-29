@@ -39,11 +39,11 @@ impl Translator {
     /// Get an identifier
     pub fn get_name(&mut self) -> Ascii {
         let l = self.look;
-        if !l.is_alpha() {
+        if !l.is_alphabetic() {
             expected("Name");
         }
         self.read();
-        l.to_upper()
+        l.to_uppercase()
     }
 
     /// Get a number
@@ -74,7 +74,7 @@ impl Translator {
             self.match_('(');
             self.expression();
             self.match_(')');
-        } else if self.look.is_alpha() {
+        } else if self.look.is_alphabetic() {
             self.ident();
         } else {
             emitln(format!("mov rax, {}", self.get_num()).as_slice());

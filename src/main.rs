@@ -1,3 +1,5 @@
+#![allow(dead_code)] // most of the code is going to be dead in any given version
+
 use translator_interp::Translator;
 
 mod translator;

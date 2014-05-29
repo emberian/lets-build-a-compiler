@@ -48,12 +48,12 @@ impl Translator {
     /// Get an identifier
     pub fn get_name(&mut self) -> String {
         let mut token = String::new();
-        if !self.look.is_alpha() {
+        if !self.look.is_alphabetic() {
             expected("Name");
         }
 
-        while self.look.is_alnum() {
-            token.push_char(self.look.to_upper().to_char());
+        while self.look.is_alphanumeric() {
+            token.push_char(self.look.to_uppercase().to_char());
             self.read();
         }
         self.skip_white();
@@ -90,7 +90,7 @@ impl Translator {
             self.match_('(');
             self.expression();
             self.match_(')');
-        } else if self.look.is_alpha() {
+        } else if self.look.is_alphabetic() {
             self.ident();
         } else {
             emitln(format!("mov rax, {}", self.get_num()).as_slice());

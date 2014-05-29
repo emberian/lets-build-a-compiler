@@ -41,11 +41,11 @@ impl Translator {
     /// Get an identifier
     pub fn get_name(&mut self) -> Ascii {
         let l = self.look;
-        if !l.is_alpha() {
+        if !l.is_alphabetic() {
             expected("Name");
         }
         self.read();
-        l.to_upper()
+        l.to_uppercase()
     }
 
     /// Get a number
@@ -110,7 +110,7 @@ impl Translator {
             self.match_('(');
             val = self.expression();
             self.match_(')');
-        } else if self.look.is_alpha() {
+        } else if self.look.is_alphabetic() {
             let name = self.get_name();
             val = self.var(name);
         } else {
