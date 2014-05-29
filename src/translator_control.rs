@@ -77,7 +77,8 @@ impl Translator {
                 'i' => self.if_(),
                 'w' => self.while_(),
                 'p' => self.loop_(),
-                'e' | 'l' => return,
+                'r' => self.repeat(),
+                'e' | 'l' | 'u' => return,
                 _   => self.other()
             }
         }
@@ -144,6 +145,22 @@ impl Translator {
 
         self.match_('e');
         emitln(format!("JMP {}", label).as_slice());
+    }
+
+    /// <repeat> ::= r <block> u <condition>
+    fn repeat(&mut self) {
+        self.match_('r');
+
+        let label = self.new_label();
+        self.post_label(label.as_slice());
+
+        self.block();
+
+        self.match_('u');
+
+        self.condition();
+
+        emitln(format!("JZ {}", label).as_slice());
     }
 
     /// <other> ::= <name>
