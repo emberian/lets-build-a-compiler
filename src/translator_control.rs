@@ -70,11 +70,12 @@ impl Translator {
     }
 
     /// <block> ::= [ <statement> ]*
-    /// <statement> ::= <if> | <other>
+    /// <statement> ::= <if> | <while> | <other>
     fn block(&mut self) {
         loop {
             match self.look.to_char() {
                 'i' => self.if_(),
+                'w' => self.while_(),
                 'e' | 'l' => return,
                 _   => self.other()
             }
@@ -106,6 +107,27 @@ impl Translator {
         }
 
         self.match_('e');
+
+        self.post_label(label2.as_slice());
+    }
+
+    /// <while> ::= w <condition> <block> e
+    fn while_(&mut self) {
+        self.match_('w');
+        let label1 = self.new_label();
+        let label2 = self.new_label();
+
+        self.post_label(label1.as_slice());
+
+        self.condition();
+
+        emitln(format!("JZ {}", label2).as_slice());
+
+        self.block();
+
+        self.match_('e');
+
+        emitln(format!("JMP {}", label1).as_slice());
 
         self.post_label(label2.as_slice());
     }
