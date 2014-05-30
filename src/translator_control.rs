@@ -70,7 +70,7 @@ impl Translator {
     }
 
     /// <block> ::= [ <statement> ]*
-    /// <statement> ::= <if> | <while> | <loop> | <other>
+    /// <statement> ::= <if> | <while> | <loop> | <repeat> | <for> | <other>
     fn block(&mut self) {
         loop {
             match self.look.to_char() {
@@ -78,6 +78,7 @@ impl Translator {
                 'w' => self.while_(),
                 'p' => self.loop_(),
                 'r' => self.repeat(),
+                'f' => self.for_(),
                 'e' | 'l' | 'u' => return,
                 _   => self.other()
             }
@@ -163,6 +164,41 @@ impl Translator {
         emitln(format!("JZ {}", label).as_slice());
     }
 
+    /// <for> ::= f <name> = <expr> <expr> <block> e
+    fn for_(&mut self) {
+        emitln("PUSH EBX");
+
+        self.match_('f');
+        let label1 = self.new_label();
+        let label2 = self.new_label();
+
+        let name = self.get_name();
+        self.match_('=');
+
+        emitln(format!("<somehow load {}>", name).as_slice());
+
+        self.expression();
+        emitln("MOV EBX, EAX");
+
+        self.expression();
+
+        emitln("SUB EAX, EBX");
+        emitln(format!("JO {}", label2).as_slice());
+        emitln(format!("<somehow store EAX to {}>", name).as_slice());
+
+        self.post_label(label1.as_slice());
+
+        self.block();
+
+        self.match_('e');
+
+        emitln(format!("<somehow SUB {}, 1>", name).as_slice());
+        emitln(format!("JNZ {}", label1).as_slice());
+
+        self.post_label(label2.as_slice());
+        emitln("POP EBX");
+    }
+
     /// <other> ::= <name>
     fn other(&mut self) {
         emitln(self.get_name().to_str().as_slice());
@@ -170,6 +206,10 @@ impl Translator {
 
     fn condition(&mut self) {
         emitln("<condition>");
+    }
+
+    fn expression(&mut self) {
+        emitln("<expression>");
     }
 }
 
