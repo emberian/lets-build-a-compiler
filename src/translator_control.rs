@@ -70,7 +70,7 @@ impl Translator {
     }
 
     /// <block> ::= [ <statement> ]*
-    /// <statement> ::= <if> | <while> | <loop> | <repeat> | <for> | <other>
+    /// <statement> ::= <if> | <while> | <loop> | <repeat> | <for> | <do> | <other>
     fn block(&mut self) {
         loop {
             match self.look.to_char() {
@@ -79,6 +79,7 @@ impl Translator {
                 'p' => self.loop_(),
                 'r' => self.repeat(),
                 'f' => self.for_(),
+                'd' => self.do_(),
                 'e' | 'l' | 'u' => return,
                 _   => self.other()
             }
@@ -197,6 +198,22 @@ impl Translator {
 
         self.post_label(label2.as_slice());
         emitln("POP EBX");
+    }
+
+    /// <do> = d <expr> <block> e
+    fn do_(&mut self) {
+        self.match_('d');
+        let label = self.new_label();
+
+        self.expression();
+        emitln("MOV ECX, EAX");
+
+        self.post_label(label.as_slice());
+        self.block();
+
+        emitln(format!("LOOP {}", label).as_slice());
+
+        self.match_('e');
     }
 
     /// <other> ::= <name>
